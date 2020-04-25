@@ -24,6 +24,7 @@ Randomly arrange numbers in a grid while making all rows, columns and
 squares (sub-grids) contain the numbers 1 through 9.
 
 For example, "sample" (above) could be the output of this function. """
+
 def construct_puzzle_solution():
     # Loop until we're able to fill all 81 cells with numbers, while
     # satisfying the constraints above.
@@ -44,8 +45,8 @@ def construct_puzzle_solution():
                     print("choice: {}".format(choice))
         
                     puzzle[i][j] = choice
-                    print("Puzzle: ")
-                    pp(puzzle)
+                    #print("Puzzle: ")
+                    #pp(puzzle)
 
                     rows[i].discard(choice)
                     columns[j].discard(choice)
@@ -71,7 +72,6 @@ def pluck(puzzle, n=0):
     in cell "c"? """
     def canBeA(puz, i, j, c):
         v = puz[c//9][c%9]
-        print("v: {}".format(v))
         if puz[i][j] == v: return True
         if puz[i][j] in range(1,10): return False
             
@@ -163,6 +163,7 @@ def best(set_of_puzzles):
     return set_of_puzzles[min(set_of_puzzles.keys())][0]
 
 def display(puzzle):
+    pp(puzzle)
     for row in puzzle:
         print(' '.join([str(n or '_') for n in row]))
 
@@ -170,4 +171,5 @@ def display(puzzle):
 """ Controls starts here """
 results = run(n=0)       # find puzzles with as few givens as possible.
 puzzle  = best(results)  # use the best one of those puzzles.
-display(puzzle)          # display that puzzle.
+display(puzzle)
+    #return puzzle        # display that puzzle.
