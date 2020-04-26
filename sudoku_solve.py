@@ -14,9 +14,6 @@ import numpy as np
 import math
 import sys
 
-resolved = 0
-unfinished = 1
-error = 2
 
 solved_grid = np.array( [[3,4,1,2,9,7,6,8,5],
               [2,5,6,8,3,4,9,7,1],
@@ -85,13 +82,37 @@ def checkIfSolved(grid):
 def checkOnesInside(array):
     return all(x == array[0] for x in array)
 
-
-# def getSolutions(grid):
-#     isSolved = checkIfSolved(grid)
-#     if isSolved:
-#         return grid
-        
+# @author: https://github.com/artonge/gym-sudoku
+def getSolutions(grid, stop=1, col=-1, row=-1, omit=-1):
+    isSolved = checkIfSolved(grid)
+    if isSolved:
+        return grid
     
+    #check for empty spaces if no i given in 
+    if col == -1:
+        for col in range(N):
+            for row in range(N):
+                if grid[col][row] == 0:
+                    break
+            if grid[col][row] == 0: 
+                break
+            
+    values = np.arange(1, N+1)
+    np.random.shuffle(values)
+    solutions = np.empty(shape=(0,N,N))
+    for value in values:
+        if omit == value:
+            continue
+        copy = np.copy(grid)
+        copy[col][row] = value
+        subSol = getSolutions(copy, stop=stop-len(solutions))
+        solutions = np.concatenate((solutions, subSol))
+        if len(solutions) >= stop:
+            return solutions
+    return solutions
+        
+#def step()
+#def reset()
         
 print(checkIfSolved(solved_grid))
 print(checkIfSolved(unsolved_grid))
