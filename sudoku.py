@@ -35,16 +35,16 @@ def construct_puzzle_solution():
             squares = [set(range(1,10)) for i in range(9)] #   row, column and square
             for i in range(9):
                 for j in range(9):
-                    print("i:{}, j={}".format(i,j))
+                    #print("i:{}, j={}".format(i,j))
                     # pick a number for cell (i,j) from the set of remaining available numbers
                     choices = rows[i].intersection(columns[j]).intersection(squares[(i//3)*3 + j//3])
                     choice  = random.choice(list(choices))
-                    print("choices: {}".format(choices))
-                    print("choice: {}".format(choice))
+                    #print("choices: {}".format(choices))
+                    #print("choice: {}".format(choice))
         
                     puzzle[i][j] = choice
-                    print("Puzzle: ")
-                    pp(puzzle)
+                    #print("Puzzle: ")
+                    #pp(puzzle)
 
                     rows[i].discard(choice)
                     columns[j].discard(choice)
@@ -75,9 +75,9 @@ def pluck(puzzle, n=0):
             
         for m in range(9): # test row, col, square
             # if not the cell itself, and the mth cell of the group contains the value v, then "no"
-            if not (m==c/9 and j==c%9) and puz[m][j] == v: return False
-            if not (i==c/9 and m==c%9) and puz[i][m] == v: return False
-            if not ((i/3)*3 + m/3==c/9 and (j/3)*3 + m%3==c%9) and puz[(i/3)*3 + m/3][(j/3)*3 + m%3] == v:
+            if not (m==c//9 and j==c%9) and puz[m][j] == v: return False
+            if not (i==c//9 and m==c%9) and puz[i][m] == v: return False
+            if not ((i//3)*3 + m//3==c//9 and (j//3)*3 + m%3==c%9) and puz[(i//3)*3 + m//3][(j//3)*3 + m%3] == v:
                 return False
 
         return True
@@ -102,15 +102,15 @@ def pluck(puzzle, n=0):
             if i != cell/9:
                 if canBeA(puzzle, i, cell%9, cell): row = True
             if i != cell%9:
-                if canBeA(puzzle, cell/9, i, cell): col = True
-            if not (((cell/9)/3)*3 + i/3 == cell/9 and ((cell/9)%3)*3 + i%3 == cell%9):
-                if canBeA(puzzle, ((cell/9)/3)*3 + i/3, ((cell/9)%3)*3 + i%3, cell): square = True
+                if canBeA(puzzle, cell//9, i, cell): col = True
+            if not (((cell//9)//3)*3 + i//3 == cell//9 and ((cell//9)%3)*3 + i%3 == cell%9):
+                if canBeA(puzzle, ((cell//9)//3)*3 + i//3, ((cell//9)%3)*3 + i%3, cell): square = True
 
         if row and col and square:
             continue # could not pluck this cell, try again.
         else:
             # this is a pluckable cell!
-            puzzle[cell/9][cell%9] = 0 # 0 denotes a blank cell
+            puzzle[cell//9][cell%9] = 0 # 0 denotes a blank cell
             cells.discard(cell) # remove from the set of visible cells (pluck it)
             # we don't need to reset "cellsleft" because if a cell was not pluckable
             # earlier, then it will still not be pluckable now (with less information
@@ -145,7 +145,7 @@ def run(n = 28, iter=100):
     print("Constructing a sudoku puzzle.")
     print("* creating the solution...")
     a_puzzle_solution = construct_puzzle_solution()
-
+    display(a_puzzle_solution)
     print("* constructing a puzzle...")
     for i in range(iter):
         puzzle = copy.deepcopy(a_puzzle_solution)
