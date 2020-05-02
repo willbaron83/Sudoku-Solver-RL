@@ -7,7 +7,7 @@ Created on Mon Apr 27 22:12:34 2020
 """
 import gym
 from gym import spaces
-#from sudoku_solve import Sudoku_Solve
+from sudoku_solve import Sudoku_Solve
 import numpy as np
 import gym_sudoku
 
