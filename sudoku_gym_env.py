@@ -18,16 +18,16 @@ max_num_steps = max_episodes * steps_per_episode
 epsilon_decay = 500 * epsilon_min / max_num_steps
 alpha = 0.05
 gamma = 0.98
-num_discrete_bins = 30
+# num_discrete_bins = 30
 
 
 class Q_Learner_Sudoku():
     def __init__(self):
         self.obs_shape = spaces.Box(low=1, high=9, shape=(9, 9))
-        self.obs_bins = num_discrete_bins
+        # self.obs_bins = num_discrete_bins
         self.action_shape = spaces.Tuple((spaces.Discrete(9), spaces.Discrete(9), spaces.Discrete(9)))
 
-        self.Q = np.zeros((self.obs_bins + 1, self.obs_bins + 1, self.action_shape))
+        self.Q = np.zeros(([9,9], self.action_shape))
 
         self.alpha = alpha
         self.gamma = gamma
@@ -62,7 +62,9 @@ def train(agent):
         if total > best_reward:
             best_reward = total
         print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
-                                                                   total_reward, best_reward, agent.epsilon))
+                                                                   total_reward,
+                                                                   best_reward,
+                                                                   agent.epsilon))
 
 
 def test(agent, policy):
@@ -82,6 +84,6 @@ if __name__ == "main":
     agent = Q_Learner_Sudoku(env)
     # agent = Q_Learner_Sudoku()
     learned_policy = train(agent)
-    print(learned_policy)
+    #print(learned_policy)
 
 
