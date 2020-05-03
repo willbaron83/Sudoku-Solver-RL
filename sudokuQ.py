@@ -12,13 +12,13 @@ import numpy as np
 from newsudoku import SudokuEnv
 import random
 
-max_episodes = 1
-steps_per_episode = 200
+max_episodes = 5
+steps_per_episode = 500
 epsilon_min = 0.005
 max_num_steps = max_episodes * steps_per_episode
 epsilon_decay = 500 * epsilon_min / max_num_steps
 alpha = 0.05
-gamma = 0.98
+gamma = 0.5
 num_discrete_bins = 30
 epsilon = 1.0
 
@@ -43,45 +43,65 @@ class Q_Learner_Sudoku(object):
         if tp > self.epsilon:
             # print("Q Obs = ", self.Q[obs])
             Q_obs = self.Q[obs]
-            max_val = 0
+            max_val_key = 0
+            max_value = 0
             max_action = ''
             if Q_obs == {}:
                 act = self.action_space.sample()
                 list_act = list(act)
                 list_act.pop()
-                print("List ", list_act)
                 tup_act = tuple(list_act)
                 ax = str(tup_act)
                 self.Q[obs][ax] = {0: 0, 1: 0, 2: 0}
             for action in Q_obs:
-                print("ACTION ", action, " ITEMS ", Q_obs[action])
                 inner_Q_obs = Q_obs[action]
                 max_v = max(inner_Q_obs, key=inner_Q_obs.get)
-                if max_v >= max_val:
-                    max_val = max_v
+                if inner_Q_obs[max_v] >= max_value:
+                    max_val_key = max_v
                     max_action = action
+                    max_value = inner_Q_obs[max_v]
             # print(max_val, max_action)
             # value, action_value = max(((v,k) for inner_q in Q_obs for k, v in inner_q.items()))
             #value = {0: 0, 1: 0, 2: 0}
-            print("Value ", max_val, " Action ", max_action)
+            print("Value ", max_val_key, " Action ", max_action)
             temp = []
+            if max_action == '':
+                max_a = self.action_space.sample()
+                lista = list(max_a)
+                lista.pop()
+                max_action = str(tuple(lista))
             for t in max_action.split(", "):
                 num = int(t.replace("(", "").replace(")", ""))
                 temp.append(num)
                 if ")" in t:
-                    temp.append(max_val)
+                    temp.append(max_val_key)
                     a = tuple(temp)
                     print("Final Action ", a)
-            # print("Q ", self.Q)
             return a
         else:
             print("Smaller")
             return self.action_space.sample()
 
     def learn(self, obs, action, reward, next_obs):
-        print("next ", next_obs)
-        td_target = reward + self.gamma * np.argmax(self.Q[next_obs])
-        #action = '(2,1,2)'
+        Q_next_obs = self.Q[next_obs]
+        max_val_key = 0
+        max_value = 0
+        max_a = ''
+        if Q_next_obs == {}:
+            act = self.action_space.sample()
+            list_act = list(act)
+            list_act.pop()
+            tup_act = tuple(list_act)
+            ax = str(tup_act)
+            self.Q[next_obs][ax] = {0: 0, 1: 0, 2: 0}
+        for a in Q_next_obs:
+            inner_Q_obs = Q_next_obs[a]
+            max_v = max(inner_Q_obs, key=inner_Q_obs.get)
+            if inner_Q_obs[max_v] >= max_value:
+                max_a = a
+                max_value = inner_Q_obs[max_v]
+                max_val_key = max_v
+        td_target = reward + self.gamma * max_value
         tmep = []
         for t in action.split(','):
             num = int(t.replace('(','').replace(')', ''))
@@ -95,12 +115,12 @@ class Q_Learner_Sudoku(object):
 
 
 def train(agent, env):
-    print("EHLLO")
     best_reward = -float('inf')
     for episode in range(max_episodes):
         done = False
         obs = env.reset()
         total = 0.0
+        steps = 0
         while not done:
             state = str(obs)
             if state not in agent.Q:
@@ -111,14 +131,18 @@ def train(agent, env):
             action_str = str(action)
             agent.A[action_str] = action
             next_obs, reward, done, info = env.step(action)
+            print(f"Reward for action {action} is {reward}")
             next_state = str(next_obs)
             if next_state not in agent.Q:
                 agent.Q[next_state] = {}
             agent.learn(state, action_str, reward, next_state)
             obs = next_obs
             total += reward
+            steps += 1
         if total > best_reward:
             best_reward = total
+        print(obs)
+        print("Steps ", steps)
     
         print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
                                                                    total, best_reward, agent.epsilon))
@@ -140,7 +164,6 @@ def test(agent, env, policy):
 # if __name__ == "main":
 env = SudokuEnv()
 agent = Q_Learner_Sudoku(env)
-print("HELLO! ")
 learned_policy = train(agent, env)
 print("LEARNED", learned_policy)
 

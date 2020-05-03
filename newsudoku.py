@@ -37,33 +37,53 @@ error = 2
 
 def checkSolution(grid):
 	N = len(grid)
-	for i in range(N):
-		for j in range(N):
-			# If a case is not filled, the sudoku is not finished
-			if grid[i][j] == 0:
-				print("Unfirnished")
-				return unfinished
+	
+	#check rows
+	for i in range(1, N+1):
+		count = np.count_nonzero(grid == i, axis = 1)
+		valid = checkOnesInside(count)
+		if not valid: 
+			return error
+		countcols = np.count_nonzero(grid == i, axis = 0)
+		validcols = checkOnesInside(countcols)
+		if not validcols:
+			return error
+	# for i in range(N):
+	# 	for j in range(N):
+	# 		# If a case is not filled, the sudoku is not finished
 
-			n = N//3
-			iOffset = i//n*n
-			jOffset = j//n*n
-			square = grid[ iOffset:iOffset + n , jOffset:jOffset + n].flatten()
-			# Check uniqueness
-			uniqueInRow    = countItem(grid[i], grid[i, j])  == 1
-			uniqueInCol    = countItem(grid[:,j:j+1].flatten(), grid[i, j]) == 1
-			uniqueInSquare = countItem(square, grid[i, j]) == 1
+	# 		n = N//3
+	# 		iOffset = i//n*n
+	# 		jOffset = j//n*n
+	# 		square = grid[ iOffset:iOffset + n , jOffset:jOffset + n].flatten()
+	# 		# Check uniqueness
+	# 		uniqueInRow    = countItem(grid[i], grid[i, j])  == 1
+	# 		uniqueInCol    = countItem(grid[:,j:j+1].flatten(), grid[i, j]) == 1
+	# 		uniqueInSquare = countItem(square, grid[i, j]) == 1
 
-			if not (uniqueInRow and uniqueInCol and uniqueInSquare):
-				return error
-
+	# 		if not (uniqueInRow and uniqueInCol and uniqueInSquare):
+	# 			print("ERRE")
+	# 			return error
+	# 		if grid[i][j] == 0:
+	# 			print("Unfirnished")
+	# 			return unfinished
+	zeros = np.count_nonzero(grid==0)
+	if not zeros == 0:
+		return unfinished		
 	return resolved
+
+def checkOnesInside(array):
+	return all(x <= 1 for x in array)
 
 
 # Count the number of time the item appears in a vector
 def countItem(vector, item):
 	count = 0
-	for item2 in vector:
-		if item2 == item: count += 1
+	print(item)
+	if item != 0:
+		for item2 in vector:
+			print(item2)
+			if item2 == item: count += 1
 	return count
 
 
@@ -151,19 +171,23 @@ class SudokuEnv(gym.Env):
 	# 	- a reward: - negative if action leads to an error
 	#	            - positive if action is correct or grid is resolved
 	def step(self, action):
+		if self.last_action != None and self.last_action[0] == action[0] and self.last_action[1] == action[1]: 
+			return np.copy(self.grid), -0.5, False, None
+
 		self.last_action = action
 		oldGrid = np.copy(self.grid)
 
 		# The user can't replace a value that was already set originally
-		print(len(self.original_indices_row))
 		for i in range(len(self.original_indices_row)):
 			if action[0] == self.original_indices_row[i] and action[1] == self.original_indices_col[i]:
-				print("old copy")
 				return np.copy(self.grid), -1, False, None
 		 	# elif self.grid[action[0], action[1]] != 0: 
 			# print("Replacing old value")
 
 		# We add one to the action because the action space is from 0-8 and we want a value in 1-9
+		if self.grid[action[0], action[1]] == action[2]+1:
+			return np.copy(self.grid), -1, False, None
+
 		self.grid[action[0], action[1]] = action[2]+1
 
 		stats = checkSolution(self.grid)
@@ -226,94 +250,3 @@ class SudokuEnv(gym.Env):
 # [0,0,3,0,9,0,0,1,0]])
 # #
 # print(getSolutions(env.grid))
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 27 22:12:34 2020
-
-@author: epeatfield
-"""
-
-# max_episodes = 5
-# steps_per_episode = 20
-# epsilon_min = 0.005
-# max_num_steps = max_episodes * steps_per_episode
-# epsilon_decay = 500 * epsilon_min /max_num_steps
-# alpha = 0.05
-# gamma = 0.98
-# num_discrete_bins = 30
-
-# class Q_Learner_Sudoku(object):
-#     def __init__(self):
-#         self.obs_shape = env.observation_space.shape
-#         self.obs_high = env.observation_space.high
-#         self.obs_low = env.observation_space.low
-#         self.obs_bins = num_discrete_bins  # Number of bins to Discretize each observation dim
-#         self.bin_width = (self.obs_high - self.obs_low) / self.obs_bins
-#         self.action_shape = env.action_space.n
-#         print("ACTION SHAPE {}".format(self.action_shape))
-#         # Create a multi-dimensional array (aka. Table) to represent the
-#         # Q-values
-#         self.Q = np.zeros((self.obs_bins + 1, self.obs_bins + 1,
-#                            self.action_shape))  # (51 x 51 x 3)
-#         self.alpha = alpha  # Learning rate
-#         self.gamma = gamma  # Discount factor
-#         self.epsilon = 1.0
-        
-#     def discretize(self, obs):
-#         return tuple(((obs - self.obs_low) / self.bin_width).astype(int))
-        
-#     def get_action(self, obs):
-#         discretize_obs = self.discretize(obs)
-#         if self.epsilon > epsilon_min: 
-#             self.epsilon -= epsilon_decay
-#         if np.random.random() > self.epsilon:
-#             return np.argmax(selfQ[discretize_obs])
-#         else:
-#             return np.random.choice([a for a in range(self.action_shape)])
-        
-#     def learn(self, obs, action, reward, next_obs):
-#         discretize_obs = self.discretize(obs)
-#         discretize_next_obs = self.discretize(next_obs)
-#         td_target = reward + self.gamma * np.max(self.Q[discretize_next_obs])
-#         td_error = td_target - self.Q[discretize_obs][action]
-#         self.Q[discretize_obs][action] += self.alpha * td_error        
-        
-# def train(agent, env):
-#     best_reward = -float('inf')
-#     for episode in range(max_episodes):
-#         done = False
-#         obs = env.reset()
-#         total = 0.0
-#         while not done:
-#             action = agent.get_action(obs)
-#             next_obs, reward,done, info = env.step(action)
-#             agent.learn(obs, action, reward, next_obs)
-#             obs = next_obs
-#             total += reward
-#         if total > best_reward:
-#             best_reward = total
-#         print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
-#                                      total_reward, best_reward, agent.epsilon))
-        
-# def test(agent, env, policy):
-#     done = False
-#     obs = env.reset()
-#     total_reward = 0.0
-#     while not done:
-#         action = policy[agent.discretize(obs)]
-#         next_obs, reward, done, info = env.step(action)
-#         obs = next_obs
-#         total_reward += reward
-#     return total_reward
-
-# if __name__ == "main":
-#     env = SudokuEnv(gym.Env)
-#     agent = Q_Learner_Sudoku(env)
-#     learned_policy = train(agent, env)
-#     print(learned_policy)
-#     env.close()
-    
-    
-        
