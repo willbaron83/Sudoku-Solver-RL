@@ -111,13 +111,13 @@ class SudokuEnv(gym.Env):
 	# Make a random grid and store it in self.base
 	def __init__(self):
 		# The box space is continuous. This don't apply to a sudoku grid, but there is no other choices
-		self.observation_space = spaces.Box(1, 9, shape=(9,9))
-		self.action_space = spaces.Tuple((spaces.Discrete(9), spaces.Discrete(9), spaces.Discrete(9)))
+		self.observation_space = spaces.Box(1, 3, shape=(3,3))
+		self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3), spaces.Discrete(3)))
 		# Get a random solution for an empty grid
 		self.grid = []
 		self.original_indices_row = []
 		self.original_indices_col = []
-		self.base = getSolutions(np.zeros(shape=(9,9)))[0]
+		self.base = getSolutions(np.zeros(shape=(3,3)))[0]
 		# Get all positions in random order, to randomly parse the grid
 		N = len(self.base)
 		positions = []
@@ -132,7 +132,7 @@ class SudokuEnv(gym.Env):
 		# This is slow after 40 because, the algorithm looks for 1 solutions when there is none,
 		# so it realy check all the possibilities...
 		for i, j in positions:
-			if count > 2:
+			if count > 5:
 				break
 			oldValue = self.base[i, j]
 			self.base[i, j] = 0

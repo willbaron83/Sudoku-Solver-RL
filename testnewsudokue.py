@@ -12,7 +12,7 @@ import gym
 import random
 import sys
 
-episodes = 1
+episodes = 10
 env = SudokuEnv()
 episode_rewards = [0]*episodes
 
