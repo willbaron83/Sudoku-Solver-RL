@@ -132,7 +132,7 @@ class SudokuEnv(gym.Env):
 		# This is slow after 40 because, the algorithm looks for 1 solutions when there is none,
 		# so it realy check all the possibilities...
 		for i, j in positions:
-			if count > 5:
+			if count > 2:
 				break
 			oldValue = self.base[i, j]
 			self.base[i, j] = 0

@@ -12,7 +12,7 @@ import numpy as np
 from newsudoku import SudokuEnv
 import random
 
-max_episodes = 5
+max_episodes = 1
 steps_per_episode = 200
 epsilon_min = 0.005
 max_num_steps = max_episodes * steps_per_episode
@@ -39,17 +39,22 @@ class Q_Learner_Sudoku(object):
         if self.epsilon > epsilon_min:
             self.epsilon -= epsilon_decay
         tp = np.random.random()
-        print("Random Num ", tp, " Epsilon ", self.epsilon)
+        # print("Random Num ", tp, " Epsilon ", self.epsilon)
         if tp > self.epsilon:
             # print("Q Obs = ", self.Q[obs])
             Q_obs = self.Q[obs]
             max_val = 0
             max_action = ''
             if Q_obs == {}:
-                act = str(self.action_space.sample())
-                self.Q[obs][act] = {0: 0, 1: 0, 2: 0}
+                act = self.action_space.sample()
+                list_act = list(act)
+                list_act.pop()
+                print("List ", list_act)
+                tup_act = tuple(list_act)
+                ax = str(tup_act)
+                self.Q[obs][ax] = {0: 0, 1: 0, 2: 0}
             for action in Q_obs:
-                # print("ACTION ", action, " ITEMS ", Q_obs[action])
+                print("ACTION ", action, " ITEMS ", Q_obs[action])
                 inner_Q_obs = Q_obs[action]
                 max_v = max(inner_Q_obs, key=inner_Q_obs.get)
                 if max_v >= max_val:
@@ -66,7 +71,7 @@ class Q_Learner_Sudoku(object):
                 if ")" in t:
                     temp.append(max_val)
                     a = tuple(temp)
-                    print(a)
+                    print("Final Action ", a)
             # print("Q ", self.Q)
             return a
         else:
