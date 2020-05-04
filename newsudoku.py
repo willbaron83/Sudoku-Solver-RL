@@ -54,7 +54,6 @@ def checkSolution(grid):
 		for j in range(N):
 			# If a case is not filled, the sudoku is not finished
 			if grid[i][j] == 0:
-				print("Unfirnished")
 				return unfinished
 			n = N//3
 			iOffset = i//n*n
@@ -65,7 +64,7 @@ def checkSolution(grid):
 			uniqueInCol    = countItem(grid[:,j:j+1].flatten(), grid[i, j]) == 1
 			uniqueInSquare = countItem(square, grid[i, j]) == 1
 
-			if not (uniqueInRow and uniqueInCol):
+			if not (uniqueInRow and uniqueInCol and uniqueInSquare):
 				return error
 			
 		
@@ -127,13 +126,13 @@ class SudokuEnv(gym.Env):
 	# Make a random grid and store it in self.base
 	def __init__(self):
 		# The box space is continuous. This don't apply to a sudoku grid, but there is no other choices
-		self.observation_space = spaces.Box(1,5, shape=(5,5))
-		self.action_space = spaces.Tuple((spaces.Discrete(5), spaces.Discrete(5), spaces.Discrete(5)))
+		self.observation_space = spaces.Box(1,9, shape=(9,9))
+		self.action_space = spaces.Tuple((spaces.Discrete(9), spaces.Discrete(9), spaces.Discrete(9)))
 		# Get a random solution for an empty grid
 		self.grid = []
 		self.original_indices_row = []
 		self.original_indices_col = []
-		self.base = getSolutions(np.zeros(shape=(5,5)))[0]
+		self.base = getSolutions(np.zeros(shape=(9,9)))[0]
 		# Get all positions in random order, to randomly parse the grid
 		N = len(self.base)
 		positions = []
@@ -148,7 +147,7 @@ class SudokuEnv(gym.Env):
 		# This is slow after 40 because, the algorithm looks for 1 solutions when there is none,
 		# so it realy check all the possibilities...
 		for i, j in positions:
-			if count > 5:
+			if count > 3:
 				break
 			oldValue = self.base[i, j]
 			self.base[i, j] = 0

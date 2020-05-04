@@ -18,7 +18,7 @@ epsilon_min = 0.005
 max_num_steps = max_episodes * steps_per_episode
 epsilon_decay = 500 * epsilon_min / max_num_steps
 alpha = 0.05
-gamma = 0.5
+gamma = 0.98
 num_discrete_bins = 30
 epsilon = 1.0
 
@@ -51,7 +51,7 @@ class Q_Learner_Sudoku(object):
                 list_act.pop()
                 tup_act = tuple(list_act)
                 ax = str(tup_act)
-                self.Q[obs][ax] = {0: 0, 1: 0, 2: 0, 3:0, 4:0}#, 5:0, 6:0, 7:0, 8:0}
+                self.Q[obs][ax] = {0: 0, 1: 0, 2: 0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0}
             for action in Q_obs:
                 inner_Q_obs = Q_obs[action]
                 max_v = max(inner_Q_obs, key=inner_Q_obs.get)
@@ -69,7 +69,7 @@ class Q_Learner_Sudoku(object):
                 lista = list(max_a)
                 lista.pop()
                 max_action = str(tuple(lista))
-                self.Q[obs][max_action] = {0: 0, 1: 0, 2: 0, 3:0, 4:0}#, 5:0, 6:0, 7:0, 8:0}
+                self.Q[obs][max_action] = {0: 0, 1: 0, 2: 0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0}
             for t in max_action.split(", "):
                 num = int(t.replace("(", "").replace(")", ""))
                 temp.append(num)
@@ -93,7 +93,7 @@ class Q_Learner_Sudoku(object):
             list_act.pop()
             tup_act = tuple(list_act)
             ax = str(tup_act)
-            self.Q[next_obs][ax] = {0: 0, 1: 0, 2: 0, 3:0, 4:0}#, 5:0, 6:0, 7:0, 8:0}
+            self.Q[next_obs][ax] = {0: 0, 1: 0, 2: 0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0}
         for a in Q_next_obs:
             inner_Q_obs = Q_next_obs[a]
             max_v = max(inner_Q_obs, key=inner_Q_obs.get)
@@ -109,7 +109,7 @@ class Q_Learner_Sudoku(object):
         val = tmep.pop()
         a = str(tuple(tmep))
         if a not in agent.Q[obs]:
-                agent.Q[obs][a] = {0: 0, 1: 0, 2: 0, 3: 0,4:0}#,5:0,6:0,7:0,8:0 }
+                agent.Q[obs][a] = {0: 0, 1: 0, 2: 0, 3: 0,4:0,5:0,6:0,7:0,8:0 }
         td_error = td_target - self.Q[obs][a][val]
         self.Q[obs][a][val] += self.alpha * td_error
 
@@ -166,5 +166,6 @@ def test(agent, env, policy):
 env = SudokuEnv()
 agent = Q_Learner_Sudoku(env)
 learned_policy = train(agent, env)
+print(env.base)
 print("LEARNED")
 
