@@ -12,8 +12,8 @@ import numpy as np
 from newsudoku import SudokuEnv
 import random
 
-max_episodes = 5
-steps_per_episode = 500
+max_episodes = 1
+steps_per_episode = 200
 epsilon_min = 0.005
 max_num_steps = max_episodes * steps_per_episode
 epsilon_decay = 500 * epsilon_min / max_num_steps
@@ -24,7 +24,6 @@ epsilon = 1.0
 
 class Q_Learner_Sudoku(object):
     def __init__(self, env):
-        self.obs_shape = spaces.Box(low=1, high=9, shape=(3, 3))
         self.obs_bins = num_discrete_bins
         self.action_space = env.action_space
         # self.Q = np.zeros((self.obs_bins + 1, self.obs_bins + 1, self.action_shape))
@@ -44,7 +43,7 @@ class Q_Learner_Sudoku(object):
             # print("Q Obs = ", self.Q[obs])
             Q_obs = self.Q[obs]
             max_val_key = 0
-            max_value = 0
+            max_value = -0.01
             max_action = ''
             if Q_obs == {}:
                 act = self.action_space.sample()
@@ -52,7 +51,7 @@ class Q_Learner_Sudoku(object):
                 list_act.pop()
                 tup_act = tuple(list_act)
                 ax = str(tup_act)
-                self.Q[obs][ax] = {0: 0, 1: 0, 2: 0}
+                self.Q[obs][ax] = {0: 0, 1: 0, 2: 0, 3:0, 4:0}#, 5:0, 6:0, 7:0, 8:0}
             for action in Q_obs:
                 inner_Q_obs = Q_obs[action]
                 max_v = max(inner_Q_obs, key=inner_Q_obs.get)
@@ -70,6 +69,7 @@ class Q_Learner_Sudoku(object):
                 lista = list(max_a)
                 lista.pop()
                 max_action = str(tuple(lista))
+                self.Q[obs][max_action] = {0: 0, 1: 0, 2: 0, 3:0, 4:0}#, 5:0, 6:0, 7:0, 8:0}
             for t in max_action.split(", "):
                 num = int(t.replace("(", "").replace(")", ""))
                 temp.append(num)
@@ -93,7 +93,7 @@ class Q_Learner_Sudoku(object):
             list_act.pop()
             tup_act = tuple(list_act)
             ax = str(tup_act)
-            self.Q[next_obs][ax] = {0: 0, 1: 0, 2: 0}
+            self.Q[next_obs][ax] = {0: 0, 1: 0, 2: 0, 3:0, 4:0}#, 5:0, 6:0, 7:0, 8:0}
         for a in Q_next_obs:
             inner_Q_obs = Q_next_obs[a]
             max_v = max(inner_Q_obs, key=inner_Q_obs.get)
@@ -109,7 +109,7 @@ class Q_Learner_Sudoku(object):
         val = tmep.pop()
         a = str(tuple(tmep))
         if a not in agent.Q[obs]:
-                agent.Q[obs][a] = {0: 0, 1: 0, 2: 0}
+                agent.Q[obs][a] = {0: 0, 1: 0, 2: 0, 3: 0,4:0}#,5:0,6:0,7:0,8:0 }
         td_error = td_target - self.Q[obs][a][val]
         self.Q[obs][a][val] += self.alpha * td_error
 
@@ -139,6 +139,7 @@ def train(agent, env):
             obs = next_obs
             total += reward
             steps += 1
+            print(obs)
         if total > best_reward:
             best_reward = total
         print(obs)
@@ -165,5 +166,5 @@ def test(agent, env, policy):
 env = SudokuEnv()
 agent = Q_Learner_Sudoku(env)
 learned_policy = train(agent, env)
-print("LEARNED", learned_policy)
+print("LEARNED")
 

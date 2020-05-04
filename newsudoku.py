@@ -37,39 +37,38 @@ error = 2
 
 def checkSolution(grid):
 	N = len(grid)
-	
+	# zeros = np.count_nonzero(grid==0)
+	# if not zeros == 0:
+	# 	return unfinished	
 	#check rows
-	for i in range(1, N+1):
-		count = np.count_nonzero(grid == i, axis = 1)
-		valid = checkOnesInside(count)
-		if not valid: 
-			return error
-		countcols = np.count_nonzero(grid == i, axis = 0)
-		validcols = checkOnesInside(countcols)
-		if not validcols:
-			return error
-	# for i in range(N):
-	# 	for j in range(N):
-	# 		# If a case is not filled, the sudoku is not finished
+	# for i in range(1, N+1):
+	# 	count = np.count_nonzero(grid == i, axis = 1)
+	# 	valid = checkOnesInside(count)
+	# 	if not valid: 
+	# 		return error
+	# 	countcols = np.count_nonzero(grid == i, axis = 0)
+	# 	validcols = checkOnesInside(countcols)
+	# 	if not validcols:
+	# 		return error
+	for i in range(N):
+		for j in range(N):
+			# If a case is not filled, the sudoku is not finished
+			if grid[i][j] == 0:
+				print("Unfirnished")
+				return unfinished
+			n = N//3
+			iOffset = i//n*n
+			jOffset = j//n*n
+			square = grid[ iOffset:iOffset + n , jOffset:jOffset + n].flatten()
+			# Check uniqueness
+			uniqueInRow    = countItem(grid[i], grid[i, j])  == 1
+			uniqueInCol    = countItem(grid[:,j:j+1].flatten(), grid[i, j]) == 1
+			uniqueInSquare = countItem(square, grid[i, j]) == 1
 
-	# 		n = N//3
-	# 		iOffset = i//n*n
-	# 		jOffset = j//n*n
-	# 		square = grid[ iOffset:iOffset + n , jOffset:jOffset + n].flatten()
-	# 		# Check uniqueness
-	# 		uniqueInRow    = countItem(grid[i], grid[i, j])  == 1
-	# 		uniqueInCol    = countItem(grid[:,j:j+1].flatten(), grid[i, j]) == 1
-	# 		uniqueInSquare = countItem(square, grid[i, j]) == 1
-
-	# 		if not (uniqueInRow and uniqueInCol and uniqueInSquare):
-	# 			print("ERRE")
-	# 			return error
-	# 		if grid[i][j] == 0:
-	# 			print("Unfirnished")
-	# 			return unfinished
-	zeros = np.count_nonzero(grid==0)
-	if not zeros == 0:
-		return unfinished		
+			if not (uniqueInRow and uniqueInCol):
+				return error
+			
+		
 	return resolved
 
 def checkOnesInside(array):
@@ -79,11 +78,8 @@ def checkOnesInside(array):
 # Count the number of time the item appears in a vector
 def countItem(vector, item):
 	count = 0
-	print(item)
-	if item != 0:
-		for item2 in vector:
-			print(item2)
-			if item2 == item: count += 1
+	for item2 in vector:
+		if item2 == item: count += 1
 	return count
 
 
@@ -131,13 +127,13 @@ class SudokuEnv(gym.Env):
 	# Make a random grid and store it in self.base
 	def __init__(self):
 		# The box space is continuous. This don't apply to a sudoku grid, but there is no other choices
-		self.observation_space = spaces.Box(1, 3, shape=(3,3))
-		self.action_space = spaces.Tuple((spaces.Discrete(3), spaces.Discrete(3), spaces.Discrete(3)))
+		self.observation_space = spaces.Box(1,5, shape=(5,5))
+		self.action_space = spaces.Tuple((spaces.Discrete(5), spaces.Discrete(5), spaces.Discrete(5)))
 		# Get a random solution for an empty grid
 		self.grid = []
 		self.original_indices_row = []
 		self.original_indices_col = []
-		self.base = getSolutions(np.zeros(shape=(3,3)))[0]
+		self.base = getSolutions(np.zeros(shape=(5,5)))[0]
 		# Get all positions in random order, to randomly parse the grid
 		N = len(self.base)
 		positions = []
@@ -152,7 +148,7 @@ class SudokuEnv(gym.Env):
 		# This is slow after 40 because, the algorithm looks for 1 solutions when there is none,
 		# so it realy check all the possibilities...
 		for i, j in positions:
-			if count > 2:
+			if count > 5:
 				break
 			oldValue = self.base[i, j]
 			self.base[i, j] = 0
@@ -171,7 +167,7 @@ class SudokuEnv(gym.Env):
 	# 	- a reward: - negative if action leads to an error
 	#	            - positive if action is correct or grid is resolved
 	def step(self, action):
-		if self.last_action != None and self.last_action[0] == action[0] and self.last_action[1] == action[1]: 
+		if self.last_action != None and self.last_action == action: 
 			return np.copy(self.grid), -0.5, False, None
 
 		self.last_action = action
@@ -195,7 +191,7 @@ class SudokuEnv(gym.Env):
 		if stats == resolved:
 			return np.copy(self.grid), 1, True, None
 		elif stats == unfinished:
-			return np.copy(self.grid), 1, False, None
+			return np.copy(self.grid), -0.05, False, None
 		if stats == error:
 			# If move is wrong, return to old state, and return negative reward
 			self.grid = oldGrid
