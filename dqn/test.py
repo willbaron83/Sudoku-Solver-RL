@@ -114,22 +114,25 @@ def test(agent, env, policy):
         value, key = max((v,k) for k, v  in policy[str(obs)].items())
         # print(value, key)
         action = key
+        # if obs not in agent.Q:
+        #     agent.Q[str(obs)] = dict.fromkeys(range(env.action_space.n+1), 0)
         next_obs, reward, done, info = env.step(action)
         obs = next_obs
         total_reward += reward
+        print(reward)
     return total_reward
 
 
 if __name__ == "__main__":
-    env = SudokuEnv(9)
-    agent = Q_Learner(env, 9)
+    env = SudokuEnv(3)
+    agent = Q_Learner(env, 3)
     learned_policy = train(agent, env)
     # print(learned_policy.shape)
     # print(learned_policy)
     # Use the Gym Monitor wrapper to evalaute the agent and record video
     # gym_monitor_path = "./gym_monitor_output"
     # env = gym.wrappers.Monitor(env, gym_monitor_path, force=True)
-    # for _ in range(1000):
-    #     test(agent, env, learned_policy)
-    # env.close()
+    for _ in range(1000):
+        test(agent, env, learned_policy)
+    env.close()
 

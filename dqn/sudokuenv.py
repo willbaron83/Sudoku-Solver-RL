@@ -94,7 +94,7 @@ class SudokuEnv(gym.Env):
 
         count = 0
         for i, j in positions:
-            if count > 3:
+            if count > 1:
                 break
             oldValue = self.base[i,j]
             self.base[i,j] = 0
@@ -119,7 +119,7 @@ class SudokuEnv(gym.Env):
 
         for i in range(len(self.original_indices_row)):
             if col == self.original_indices_col[i] and row == self.original_indices_row[i]:
-                print(f"ORIGINAL FILL Row: {row} Column: {col}")
+                print(f"ORIGINAL FILL Row: {row} Column: {col} Value: {val}")
                 return np.copy(self.grid), -1, False, None
         
         if self.grid[row, col] == val:
