@@ -1,89 +1,167 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 27 22:12:34 2020
+from copy import copy
+from six import StringIO
+from pprint import pprint
 
-@author: epeatfield
-"""
 import gym
-from gym import spaces
-from sudoku_solve import Sudoku_Solve
+from gym import spaces, error, utils
+from gym.utils import seeding
 import numpy as np
-import gym_sudoku
 
-max_episodes = 5
-steps_per_episode = 20
-epsilon_min = 0.005
-max_num_steps = max_episodes * steps_per_episode
-epsilon_decay = 500 * epsilon_min / max_num_steps
-alpha = 0.05
-gamma = 0.98
-# num_discrete_bins = 30
+resolved = 0
+unfinished = 1
+error = 2
 
 
-class Q_Learner_Sudoku():
-    def __init__(self):
-        self.obs_shape = spaces.Box(low=1, high=9, shape=(9, 9))
-        # self.obs_bins = num_discrete_bins
-        self.action_shape = spaces.Tuple((spaces.Discrete(9), spaces.Discrete(9), spaces.Discrete(9)))
+def checkSolution(grid):
+    N = len(grid)
+    for i in range(N):
+        for j in range(N):
+            if grid[i][j] == 0:
+                return unfinished
+            n = N // 3
+            iOffset = i // n * n
+            jOffset = j // n * n
+            square = grid[iOffset:iOffset + n, jOffset:jOffset + n].flatten()
 
-        self.Q = np.zeros(([9,9], self.action_shape))
+            uniqueInRow = countItem(grid[i], grid[i, j]) == 1
+            uniqueInCol = countItem(grid[:, j:j + 1].flatten(), grid[i, j]) == 1
+            uniqueInSquare = countItem(square, grid[i, j]) == 1
 
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = 1.0
-
-    def get_action(self, obs):
-        if self.epsilon > epsilon_min:
-            self.epsilon -= epsilon_decay
-        if np.random.random() > self.epsilon:
-            return np.argmax(selfQ[obs])
-        else:
-            return np.random.choice([a for a in range(self.action_shape)])
-
-    def learn(self, obs, action, reward, next_obs):
-        td_target = reward + self.gamma * np.max(self.Q[next_obs])
-        td_error = td_target - self.Q[obs][action]
-        self.Q[obs][action] += self.alpha * td_error
+            if not (uniqueInRow and uniqueInCol and uniqueInSquare):
+                return error
+    return resolved
 
 
-def train(agent):
-    best_reward = -float('inf')
-    for episode in range(max_episodes):
-        done = False
-        obs = Sudoku_Solve.reset()
-        total = 0.0
-        while not done:
-            action = agent.get_action(obs)
-            next_obs, reward, done, info = Sudoku_Solve.step(action)
-            agent.learn(obs, action, reward, next_obs)
-            obs = next_obs
-            total += reward
-        if total > best_reward:
-            best_reward = total
-        print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
-                                                                   total_reward,
-                                                                   best_reward,
-                                                                   agent.epsilon))
+def countItem(vector, item):
+    count = 0
+    for item2 in vector:
+        if item2 == item: count += 1
+    return count
 
 
-def test(agent, policy):
-    done = False
-    obs = Sudoku_Solve.reset()
-    total_reward = 0.0
-    while not done:
-        action = policy[obs]
-        next_obs, reward, done, info = Sudoku_Solve.step(action)
-        obs = next_obs
-        total_reward += reward
-    return total_reward
+def getSolutions(grid, stopAt=1, i=-1, j=-1, omit=-1):
+    N = len(grid)
+    check = checkSolution(grid)
+
+    if check == resolved:
+        return np.array([grid], dtype=int)
+    if check == error:
+        return np.empty(shape=(0, N, N), dtype=int)
+
+    if i == -1:
+        for i in range(N):
+            for j in range(N):
+                if grid[i, j] == 0: break
+            if grid[i, j] == 0: break
+
+    values = np.arange(1, N + 1)
+    np.random.shuffle(values)
+
+    solutions = np.empty(shape=(0, N, N), dtype=int)
+    for value in values:
+        if omit == value: continue
+        cGrid = np.copy(grid)
+        cGrid[i, j] = value
+        subSolutions = getSolutions(cGrid, stopAt=stopAt - len(solutions))
+        solutions = np.concatenate((solutions, subSolutions))
+        if len(solutions) >= stopAt:
+            return solutions
+    return solutions
 
 
-if __name__ == "main":
-    env = gym.make('Sudoku-v0')
-    agent = Q_Learner_Sudoku(env)
-    # agent = Q_Learner_Sudoku()
-    learned_policy = train(agent)
-    #print(learned_policy)
+class SudokuEnv(gym.Env):
+    last_action = None
 
+    def __init__(self, n):
+        self.n = n
+        self.val_limit = self.n - 1
+        self.nxn = self.n * self.n
+        self.observation_space = spaces.Box(1, self.n, shape=(self.n, self.n))
+        # Action = nxn*value + (row*n + col), n = 9 here
+        self.action_space = spaces.Discrete(self.nxn * self.val_limit + (self.val_limit * self.n + self.val_limit))
+        self.grid = []
+        self.original_indices_row = []
+        self.original_indices_col = []
+        self.base = getSolutions(np.zeros(shape=(self.n, self.n)))[0]
+
+        N = len(self.base)
+        positions = []
+        for i in range(N):
+            for j in range(N):
+                positions.append((i, j))
+        np.random.shuffle(positions)
+
+        count = 0
+        for i, j in positions:
+            if count > 1:
+                break
+            oldValue = self.base[i, j]
+            self.base[i, j] = 0
+            solutions = getSolutions(self.base, stopAt=2, i=i, j=j, omit=oldValue)
+            if len(solutions) == 0:
+                count += 1
+            else:
+                self.base[i, j] = oldValue
+
+    def step(self, action):
+        """
+        """
+        if self.last_action != None and self.last_action == action:
+            return np.copy(self.grid), -0.5, False, None
+        self.last_action = action
+        oldGrid = np.copy(self.grid)
+
+        square = action % self.nxn
+        col = square % self.n
+        row = (square - col) // self.n
+        val = action // self.nxn + 1
+
+        for i in range(len(self.original_indices_row)):
+            if col == self.original_indices_col[i] and row == self.original_indices_row[i]:
+                print(f"ORIGINAL FILL Row: {row} Column: {col} Value: {val}")
+                return np.copy(self.grid), -1, False, None
+
+        if self.grid[row, col] == val:
+            print("Already there")
+            return np.copy(self.grid), -1, False, None
+
+        self.grid[row, col] = val
+
+        stats = checkSolution(self.grid)
+        if stats == resolved:
+            return np.copy(self.grid), 1, True, None
+        elif stats == unfinished:
+            return np.copy(self.grid), -0.1, False, None
+        elif stats == error:
+            self.grid = oldGrid
+            return np.copy(self.grid), -1, False, None
+
+    def reset(self):
+        self.last_action = None
+        self.grid = np.copy(self.base)
+        self.original_indices_row, self.original_indices_col = np.nonzero(self.grid)
+        return np.copy(self.grid)
+
+    def render(self, mode='human', close=False):
+        if self.last_action != None:
+            square = self.last_action % self.nxn
+            col = square % self.n
+            row = (square - col) // self.n
+            val = self.last_action // self.nxn
+        for i in range(len(self.grid)):
+            for j in range(len(self.grid)):
+                if self.last_action != None and i == row and j == col:
+                    if val == self.grid[i, j]:
+                        print('')
+                    else:
+                        print('')
+                else:
+                    print('')
+                if j % 3 == 2 and j != len(self.grid) - 1:
+                    print(' | ')
+            if i % 3 == 2 and i != len(self.grid) - 1:
+                print('\n-------------------------\n')
+            else:
+                print('\n')
+        print('\n\n')
 
