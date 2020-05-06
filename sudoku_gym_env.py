@@ -7,6 +7,7 @@ from gym import spaces, error, utils
 from gym.utils import seeding
 import numpy as np
 
+
 resolved = 0
 unfinished = 1
 error = 2
