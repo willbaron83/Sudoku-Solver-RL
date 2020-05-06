@@ -4,92 +4,13 @@
 import random
 import gym
 import numpy as np
-from collections import deque
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.optimizers import Adam
 from sudoku_gym_env import SudokuEnv
 from q_learner import Q_Learner
+from q_learner import train
+from q_learner import test
 from dqn_solver import DQNSolver
 
-
-'''
-Variables needed for Q learning
-'''
-MAX_NUM_EPISODES = 1
-STEPS_PER_EPISODE = 300 #  This is specific to MountainCar. May change with env
-EPSILON_MIN = 0.005
-max_num_steps = MAX_NUM_EPISODES * STEPS_PER_EPISODE
-EPSILON_DECAY = 500 * EPSILON_MIN / max_num_steps
-ALPHA = 0.1  # Learning rate
-GAMMA = 0.98  # Discount factor
-NUM_DISCRETE_BINS = 30  # Number of bins to Discretize each observation dim
 # from scores.score_logger import ScoreLogger
-
-'''
-Variables needed for DQN
-'''
-GAMMA = 0.7
-LEARNING_RATE = 0.1
-MEMORY_SIZE = 1000000
-BATCH_SIZE = 20
-EXPLORATION_MAX = 1.0
-EXPLORATION_MIN = 0.01
-EXPLORATION_DECAY = 0.8
-
-def train(agent, env):
-    best_reward = -float('inf')
-    for episode in range(MAX_NUM_EPISODES):
-        done = False
-        obs = env.reset()
-        total_reward = 0.0
-        while not done:
-            str_obs = str(obs)
-            if str_obs not in agent.Q:
-                agent.Q[str_obs] = dict.fromkeys(range(env.action_space.n+1), 0)
-            action = agent.get_action(str_obs)
-            next_obs, reward, done, info = env.step(action)
-            str_next_obs = str(next_obs)
-            if str_next_obs not in agent.Q:
-                agent.Q[str_next_obs] = dict.fromkeys(range(env.action_space.n+1),0)
-            agent.learn(str_obs, action, reward, str_next_obs)
-            obs = next_obs
-            total_reward += reward
-        if total_reward > best_reward:
-            best_reward = total_reward
-        print("Final State ", obs)
-        print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
-                                     total_reward, best_reward, agent.epsilon))
-    # Return the trained policy
-    max_v=-200
-    max_k=0
-    for key in agent.Q:
-        print(key)
-        for k,v in agent.Q[key].items():
-            if v > max_v:
-                max_v = v
-                max_k = k
-    # value, key = max((v,k) for inner_q in agent.Q for k, v  in inner_q.items())
-    print(max_v, max_k)
-    return agent.Q
-
-
-def test(agent, env, policy):
-    done = False
-    obs = env.reset()
-    total_reward = 0.0
-    while not done:
-        value, key = max((v,k) for k, v  in policy[str(obs)].items())
-        # print(value, key)
-        action = key
-        # if obs not in agent.Q:
-        #     agent.Q[str(obs)] = dict.fromkeys(range(env.action_space.n+1), 0)
-        next_obs, reward, done, info = env.step(action)
-        obs = next_obs
-        total_reward += reward
-        print(reward)
-    return total_reward
-
 
 def dqn_sudoku():
     env = SudokuEnv(9)
@@ -134,5 +55,5 @@ def q_learning_sudoku():
     env.close()
 
 if __name__ == "__main__":
-    dqn_sudoku()
-    # q_learning_sudoku()
+    # dqn_sudoku()
+    q_learning_sudoku()
