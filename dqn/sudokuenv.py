@@ -27,7 +27,10 @@ def checkSolution(grid):
 
             uniqueInRow = countItem(grid[i], grid[i, j]) == 1
             uniqueInCol = countItem(grid[:,j:j+1].flatten(), grid[i,j]) == 1
-            uniqueInSquare = countItem(square, grid[i,j]) == 1
+            if N < 9:
+                uniqueInSquare = True
+            else:
+                uniqueInSquare = countItem(square, grid[i,j]) == 1
 
             if not (uniqueInRow and uniqueInCol and uniqueInSquare):
                 return error
@@ -119,11 +122,11 @@ class SudokuEnv(gym.Env):
 
         for i in range(len(self.original_indices_row)):
             if col == self.original_indices_col[i] and row == self.original_indices_row[i]:
-                print(f"ORIGINAL FILL Row: {row} Column: {col} Value: {val}")
+                # print(f"ORIGINAL FILL Row: {row} Column: {col} Value: {val}")
                 return np.copy(self.grid), -1, False, None
         
         if self.grid[row, col] == val:
-            print("Already there")
+            # print("Already there")
             return np.copy(self.grid), -1, False, None
         
         self.grid[row, col] = val

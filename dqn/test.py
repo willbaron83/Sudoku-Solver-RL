@@ -8,7 +8,7 @@ problem using the OpenAI Gym. |Praveen Palanisamy
 import gym
 import numpy as np
 from sudokuenv import SudokuEnv
-
+import json
 #MAX_NUM_EPISODES = 500
 MAX_NUM_EPISODES = 1
 STEPS_PER_EPISODE = 300 #  This is specific to MountainCar. May change with env
@@ -71,11 +71,14 @@ class Q_Learner(object):
 
 def train(agent, env):
     best_reward = -float('inf')
+    details = {}
     for episode in range(MAX_NUM_EPISODES):
         done = False
         obs = env.reset()
         total_reward = 0.0
+        step = 0.0
         while not done:
+            step += 1
             str_obs = str(obs)
             if str_obs not in agent.Q:
                 agent.Q[str_obs] = dict.fromkeys(range(env.action_space.n+1), 0)
@@ -89,10 +92,14 @@ def train(agent, env):
             total_reward += reward
         if total_reward > best_reward:
             best_reward = total_reward
+        details[f"trial{episode}"] = {"run": episode, "steps": step, "totalreward": reward, "best_reward": best_reward}
         print("Final State ", obs)
         print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
                                      total_reward, best_reward, agent.epsilon))
+        
     # Return the trained policy
+    with open(f"QLearningData{env.n}.json", "w") as f:
+        json.dump(details, f)
     max_v=-200
     max_k=0
     for key in agent.Q:

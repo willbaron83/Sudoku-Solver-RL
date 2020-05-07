@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 from sudokuenv import SudokuEnv
-
+import json
 # from scores.score_logger import ScoreLogger
 
 ENV_NAME = "CartPole-v1"
@@ -18,7 +18,7 @@ MEMORY_SIZE = 1000000
 BATCH_SIZE = 20
 
 EXPLORATION_MAX = 1.0
-EXPLORATION_MIN = 0.01
+EXPLORATION_MIN = 0.005
 EXPLORATION_DECAY = 0.8
 
 
@@ -60,21 +60,24 @@ class DQNSolver:
         self.exploration_rate = max(EXPLORATION_MIN, self.exploration_rate)
 
 
-def cartpole():
+def cartpole(n):
     # env = gym.make(ENV_NAME)
-    env = SudokuEnv(3)
+    env = SudokuEnv(n)
+    details = {}
     # score_logger = ScoreLogger(ENV_NAME)
     observation_space = env.observation_space.shape[0]
     action_space = env.action_space.n
     dqn_solver = DQNSolver(observation_space, action_space)
-    run = 0
-    while True:
+    run = 0        
+    best_reward = -float('inf')
+    while run < 100:
         run += 1
         state = env.reset()
-        print(state)
-        print(observation_space)
+        # print(state)
+        # print(observation_space)
         state = np.reshape(state, [observation_space, observation_space])
         step = 0
+        total_reward = 0.0
         while True:
             step += 1
             #env.render()
@@ -84,13 +87,21 @@ def cartpole():
             state_next = np.reshape(state_next, [observation_space, observation_space])
             dqn_solver.remember(state, action, reward, state_next, terminal)
             state = state_next
-            print(state)
+            total_reward += reward
+            # print(state)
             if terminal:
+                if total_reward > best_reward:
+                    best_reward = total_reward
+                details[f"trial{run}"] = {"run": run, "steps": step, "totalreward": reward, "best_reward": best_reward, "exploration": dqn_solver.exploration_rate}  
                 print("Run: " + str(run) + ", exploration: " + str(dqn_solver.exploration_rate) + ", score: " + str(step))
                 # score_logger.add_score(step, run)
                 break
+            # print(details)
             dqn_solver.experience_replay()
-
+    #save deatils tp a file
+    with open(f"DataValue{n}.json", "w") as f:
+        json.dump(details,f)
 
 if __name__ == "__main__":
-    cartpole()
+    # for n in range(3):
+    cartpole(5)
