@@ -4,7 +4,7 @@ import math
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from newsudoku import SudokuEnv
+from sudokuenv import SudokuEnv
 
 episodes_nb = 1
 

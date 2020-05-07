@@ -35,15 +35,8 @@ unsolved_grid = np.array([[9,4,1,2,9,7,6,8,5],
                   [4,1,9,5,6,2,2,3,8],
                   [7,2,8,3,4,1,5,6,9]])
 
-class Sudoku_Solve():
-    last_action = None
-    
-    def __init__(self):
-        self.last_action = None
-        self.grid = []
-        self.base = getSolutions(np.zeros(shape=(9,9)))[0]
-    
-    def checkIfSolved(grid):
+
+def checkIfSolved(grid):
         N = len(grid)
         zeros = np.count_nonzero(grid == 0)
         if not zeros == 0:
@@ -89,37 +82,49 @@ class Sudoku_Solve():
             
         return 1
     
-    def checkOnesInside(array):
-        return all(x == array[0] for x in array)
+def checkOnesInside(array):
+    return all(x == array[0] for x in array)
     
     # @author: https://github.com/artonge/gym-sudoku
-    def getSolutions(grid, stop=1, col=-1, row=-1, omit=-1):
-        isSolved = checkIfSolved(grid)
-        if isSolved == 1:
-            return grid
+def getSolutions(grid, stop=1, col=-1, row=-1, omit=-1):
+    N = len(grid)
+    isSolved = checkIfSolved(grid)
+    if isSolved == 1:
+        return grid
         
         #check for empty spaces if no i given in 
-        if col == -1:
-            for col in range(N):
-                for row in range(N):
-                    if grid[col][row] == 0:
-                        break
-                if grid[col][row] == 0: 
+    if col == -1:
+        for col in range(N):
+            for row in range(N):
+                if grid[col][row] == 0:
                     break
+            if grid[col][row] == 0: 
+                break
                 
-        values = np.arange(1, N+1)
-        np.random.shuffle(values)
-        solutions = np.empty(shape=(0,N,N))
-        for value in values:
-            if omit == value:
-                continue
-            copy = np.copy(grid)
-            copy[col][row] = value
-            subSol = getSolutions(copy, stop=stop-len(solutions))
-            solutions = np.concatenate((solutions, subSol))
-            if len(solutions) >= stop:
-                return solutions
-        return solutions
+    values = np.arange(1, N+1)
+    np.random.shuffle(values)
+    solutions = np.empty(shape=(0,N,N))
+    for value in values:
+        if omit == value:
+            continue
+        copy = np.copy(grid)
+        copy[col][row] = value
+        subSol = getSolutions(copy, stop=stop-len(solutions))
+        solutions = np.concatenate((solutions, subSol))
+        if len(solutions) >= stop:
+            return solutions
+    return solutions
+    
+    
+class Sudoku_Solve():
+    last_action = None
+    
+    def __init__(self):
+        self.last_action = None
+        self.grid = []
+        self.base = getSolutions(np.zeros(shape=(9,9)))[0]
+    
+    
             
     def step(self, action):
         self.last_action = action
@@ -130,7 +135,7 @@ class Sudoku_Solve():
         
         self.grid[action[0]][action[1]] = action[2]+1
         
-        sol = checkIfSolved(self.grid)
+        sol = self.checkIfSolved(self.grid)
         
         if sol == -1:
             return np.copy(self.grid), 1, False, None
@@ -147,7 +152,6 @@ class Sudoku_Solve():
         self.grid = np.copy(self.base)
         return np.copy(self.grid)
             
-  # print(checkIfSolved(solved_grid))
-   #print(checkIfSolved(unsolved_grid))
-    #def checkInVector(self, grid):
+print(checkIfSolved(solved_grid))
+print(getSolutions(unsolved_grid))
     

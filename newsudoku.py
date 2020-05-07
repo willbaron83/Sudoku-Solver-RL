@@ -127,7 +127,8 @@ class SudokuEnv(gym.Env):
 	def __init__(self):
 		# The box space is continuous. This don't apply to a sudoku grid, but there is no other choices
 		self.observation_space = spaces.Box(1,9, shape=(9,9))
-		self.action_space = spaces.Tuple((spaces.Discrete(9), spaces.Discrete(9), spaces.Discrete(9)))
+		self.action_space = [spaces.Discrete(9), spaces.Discrete(9), spaces.Discrete(9)]
+		# self.action_space = spaces.MultiDiscrete([9,9,9])
 		# Get a random solution for an empty grid
 		self.grid = []
 		self.original_indices_row = []
