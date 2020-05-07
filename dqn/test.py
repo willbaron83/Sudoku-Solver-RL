@@ -4,14 +4,19 @@ q_learner.py
 An easy-to-follow script to train, test and evaluate a Q-learning agent on the Mountain Car
 problem using the OpenAI Gym. |Praveen Palanisamy
 # Chapter 5, Hands-on Intelligent Agents with OpenAI Gym, 2018
+Adapted from Q-Learning class example 
+
+Modified for our Sudoku Environment. Q is now a dictionary.
+Modified by: Emma Peatfield & William Baron
+Modified for: CMPE 297 Final Project
 """
 import gym
 import numpy as np
 from sudokuenv import SudokuEnv
 import json
 #MAX_NUM_EPISODES = 500
-MAX_NUM_EPISODES = 1
-STEPS_PER_EPISODE = 300 #  This is specific to MountainCar. May change with env
+MAX_NUM_EPISODES = 100
+STEPS_PER_EPISODE = 3000 #  This is specific to MountainCar. May change with env
 EPSILON_MIN = 0.005
 max_num_steps = MAX_NUM_EPISODES * STEPS_PER_EPISODE
 EPSILON_DECAY = 500 * EPSILON_MIN / max_num_steps
@@ -28,7 +33,7 @@ class Q_Learner(object):
         self.obs_bins = NUM_DISCRETE_BINS  # Number of bins to Discretize each observation dim
         self.bin_width = (self.obs_high - self.obs_low) / self.obs_bins
         self.action_shape = env.action_space.n
-        print("ACTION SHAPE {}".format(self.action_shape))
+        # print("ACTION SHAPE {}".format(self.action_shape))
         # Create a multi-dimensional array (aka. Table) to represent the
         # Q-values
         # self.Q = np.zeros((self.obs_bins + 1, self.obs_bins + 1,
@@ -50,7 +55,7 @@ class Q_Learner(object):
         if np.random.random() > self.epsilon:
             # print("Q ", self.Q[obs].items())
             value, key = max((v,k) for k, v  in self.Q[obs].items())
-            print(value, key)
+            # print(value, key)
             return key
         else:  # Choose a random action
             return np.random.choice([a for a in range(self.action_shape)])
@@ -60,13 +65,13 @@ class Q_Learner(object):
         # discretized_next_obs = self.discretize(next_obs)
         # print("print", self.Q[next_obs])
         value, key = max((v,k) for k,v in self.Q[next_obs].items())
-        print(f"Value {value}")
+        # print(f"Value {value}")
         td_target = reward + self.gamma * value
         # if action not in self.Q[obs]:
         #     self.Q[obs][action] = 0
         td_error = td_target - self.Q[obs][action]
         self.Q[obs][action] += self.alpha * td_error
-        print("obs: {}, reward: {}, action: {}, value: {}".format(obs, reward, action, self.alpha*td_error))
+        # print("obs: {}, reward: {}, action: {}, value: {}".format(obs, reward, action, self.alpha*td_error))
 
 
 def train(agent, env):
@@ -93,9 +98,9 @@ def train(agent, env):
         if total_reward > best_reward:
             best_reward = total_reward
         details[f"trial{episode}"] = {"run": episode, "steps": step, "totalreward": reward, "best_reward": best_reward}
-        print("Final State ", obs)
-        print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
-                                     total_reward, best_reward, agent.epsilon))
+        # print("Final State ", obs)
+        # print("Episode#:{} reward:{} best_reward:{} eps:{}".format(episode,
+                                    #  total_reward, best_reward, agent.epsilon))
         
     # Return the trained policy
     with open(f"QLearningData{env.n}.json", "w") as f:
@@ -126,14 +131,15 @@ def test(agent, env, policy):
         next_obs, reward, done, info = env.step(action)
         obs = next_obs
         total_reward += reward
-        print(reward)
+        # print(reward)
     return total_reward
 
 
 if __name__ == "__main__":
-    env = SudokuEnv(3)
-    agent = Q_Learner(env, 3)
-    learned_policy = train(agent, env)
+    for n in range(3, 10):
+        env = SudokuEnv(n)
+        agent = Q_Learner(env, n)
+        learned_policy = train(agent, env)
     # print(learned_policy.shape)
     # print(learned_policy)
     # Use the Gym Monitor wrapper to evalaute the agent and record video

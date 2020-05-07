@@ -1,3 +1,12 @@
+'''
+Adapted from Keras DQN Implementation
+Resource: https://towardsdatascience.com/cartpole-introduction-to-reinforcement-learning-ed0eb5b58288
+
+Modified to work with our Sudoku Environment.
+Modified by: Emma Peatfield & William Baron
+Modified for: CMPE 297 Final Project
+'''
+
 import random
 import gym
 import numpy as np
@@ -9,9 +18,7 @@ from sudokuenv import SudokuEnv
 import json
 # from scores.score_logger import ScoreLogger
 
-ENV_NAME = "CartPole-v1"
-
-GAMMA = 0.7
+GAMMA = 0.3
 LEARNING_RATE = 0.1
 
 MEMORY_SIZE = 1000000
@@ -60,7 +67,7 @@ class DQNSolver:
         self.exploration_rate = max(EXPLORATION_MIN, self.exploration_rate)
 
 
-def cartpole(n):
+def sudoku(n):
     # env = gym.make(ENV_NAME)
     env = SudokuEnv(n)
     details = {}
@@ -104,4 +111,4 @@ def cartpole(n):
 
 if __name__ == "__main__":
     # for n in range(3):
-    cartpole(5)
+    sudoku(3)

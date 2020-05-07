@@ -1,3 +1,13 @@
+'''
+Adapted from sudoku gym environment in Python2
+Resource: https://github.com/artonge/gym-sudoku
+
+Modified for Python 3 and improvements with regards to Discrete Actions 
+and solving steps.
+Modified by: Emma Peatfield & William Baron
+Modified for: CMPE 297 Final Project
+'''
+
 import os
 import sys
 
@@ -97,7 +107,7 @@ class SudokuEnv(gym.Env):
 
         count = 0
         for i, j in positions:
-            if count > 1:
+            if count > 5:
                 break
             oldValue = self.base[i,j]
             self.base[i,j] = 0
