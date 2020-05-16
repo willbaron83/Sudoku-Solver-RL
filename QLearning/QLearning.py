@@ -1,10 +1,7 @@
 #!/usr/bin/env/ python
 """
 q_learner.py
-An easy-to-follow script to train, test and evaluate a Q-learning agent on the Mountain Car
-problem using the OpenAI Gym. |Praveen Palanisamy
-# Chapter 5, Hands-on Intelligent Agents with OpenAI Gym, 2018
-Adapted from Q-Learning class example 
+Adapted from Q-Learning class example
 
 Modified for our Sudoku Environment. Q is now a dictionary.
 Modified by: Emma Peatfield & William Baron
