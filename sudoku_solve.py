@@ -33,7 +33,9 @@ def sudoku_keras_rl():
     print(model.summary())
     policy = EpsGreedyQPolicy()
     memory = SequentialMemory(limit=50000, window_length=1)
-    dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=10, target_model_update=1e-2, policy=policy)
+    dqn = DQNAgent(model=model, nb_actions=nb_actions,
+                   memory=memory, nb_steps_warmup=10,
+                   target_model_update=1e-2, policy=policy)
     dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
     dqn.fit(env, nb_steps=5000, visualize=True, verbose=2)
@@ -65,14 +67,18 @@ def dqn_sudoku():
             state = state_next
             print(state)
             if terminal:
-                print("Run: " + str(run) + ", exploration: " + str(dqn_solver.exploration_rate) + ", score: " + str(step))
+                print("Run: " + str(run) + ", exploration: " +
+                      str(dqn_solver.exploration_rate) + ", score: " + str(step))
                 # score_logger.add_score(step, run)
                 break
             dqn_solver.experience_replay()
 
 def q_learning_sudoku():
+    # Loading the Sudoku Environment
     env = SudokuEnv(9)
+    # Setting up the agent
     agent = Q_Learner(env, 9)
+    # Train to get the learned policy
     learned_policy = train(agent, env)
     # print(learned_policy.shape)
     print(learned_policy)
@@ -86,4 +92,4 @@ def q_learning_sudoku():
 if __name__ == "__main__":
     # dqn_sudoku()
     q_learning_sudoku()
-    sudoku_keras_rl()
+    # sudoku_keras_rl()
