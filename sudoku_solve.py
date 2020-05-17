@@ -52,10 +52,12 @@ def dqn_sudoku():
     while True:
         run += 1
         state = env.reset()
-        print(state)
-        print(observation_space)
+        # print(state)
+        # print(observation_space)
         state = np.reshape(state, [observation_space, observation_space])
         step = 0
+        trial = 1000
+        trial_len = 500
         while True:
             step += 1
             #env.render()
@@ -64,6 +66,9 @@ def dqn_sudoku():
             reward = reward if not terminal else -reward
             state_next = np.reshape(state_next, [observation_space, observation_space])
             dqn_solver.remember(state, action, reward, state_next, terminal)
+            dqn_solver.experience_replay()
+            if step % 10 == 0:
+                dqn_solver.target_train()
             state = state_next
             print(state)
             if terminal:
@@ -71,7 +76,7 @@ def dqn_sudoku():
                       str(dqn_solver.exploration_rate) + ", score: " + str(step))
                 # score_logger.add_score(step, run)
                 break
-            dqn_solver.experience_replay()
+
 
 def q_learning_sudoku():
     # Loading the Sudoku Environment
@@ -90,6 +95,6 @@ def q_learning_sudoku():
     env.close()
 
 if __name__ == "__main__":
-    # dqn_sudoku()
-    q_learning_sudoku()
+    dqn_sudoku()
+    #q_learning_sudoku()
     # sudoku_keras_rl()
